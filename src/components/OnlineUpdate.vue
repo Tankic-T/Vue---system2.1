@@ -9,7 +9,7 @@
 		    <div class="add" @click="addMap"><span></span>增加</div>
 		    <div class="input">
 			    <span>系统类型</span>
-				<Select class="input" v-model="keyword" @change="searchMsg" style="width:200px;background:none">
+				<Select class="input" v-model="keyword" @on-change="searchMsg" style="width:200px;background:none">
 					  <Option value="">所有</Option>
 					 <Option value="B">B/S</Option>
                       <Option value="C">C/S</Option>
@@ -310,6 +310,7 @@
 		                });
 		    		},
 		    		searchMsg(){
+		    			this.pageIndex = 1;
 		    			this.reloadTable();
 		    		},
 		    		openDel(){
@@ -480,7 +481,7 @@
 }
 </script>
 
-<style scoped="scoped">
+<style  scoped="scoped">
 	
 
 /**********当前位置**********/

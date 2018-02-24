@@ -7,10 +7,10 @@
 		    <div class="del" @click="modaldel = true"><span></span>删除</div>
 		    <div class="input">
 			    <span>选择用户</span>
-				<Select class="input"  v-model="userID" @change="searchMsg" style="width:200px;background:none">
+				<Select class="input"  v-model="userID" @on-change="searchMsg" style="width:200px;background:none">
 					<Option value="">所有</Option>
 					
-					<Option v-for="i in userList" :value="i.id">{{i.lable}}</Option>
+					<Option v-for="i in userList" :value="i.loginName">{{i.lable}}</Option>
 	    		</Select>
 			</div>
 	</div>
@@ -132,10 +132,10 @@
 		    			}else{
 		    				this.$store.state.tableselectCode=[];
 		    			}
-		    			console.log(this.$store.state.tableselectCode);
 		    		},
 		    		searchMsg(){
-		    	
+		    		
+		    			this.pageIndex = 1;
 		    			this.reloadTable();
 		    			
 		    		},
@@ -164,7 +164,7 @@
 		    			this.isfA = data;
 		    		},
 		    		reloadTable(){
-		    			console.log(this.userID);
+		    			
 		    			let Index=this.pageIndex-1;
 		    			this.$http.get(config.content+'/asmx/LogService.asmx/GetLogDataByPage',{params:{SYS_ID:this.$store.state.placeId,pageSize:this.pageSize,pageIndex:Index,userID:this.userID}}).then(response => {
 										let result = response.body;
@@ -198,14 +198,17 @@
 						                 $(result).find("string").each(function(i){                     
 						                 	obj=$.parseJSON($(this).text());                      
 						                })
-						                 console.log(obj);
 						                 this.userList=[];
 						                 
-						                 for(let i=0;i<obj.Result.length;i++){
-						                 	for(let c=0;c<obj.Result[i].children.length;c++){
-						                 		this.userList.push(obj.Result[i].children[c]);
+						                 if(obj.Result){
+						                 	for(let i=0;i<obj.Result.length;i++){
+							                 	for(let c=0;c<obj.Result[i].children.length;c++){
+							                 		this.userList.push(obj.Result[i].children[c]);
+							                 	}
 						                 	}
+						                 	
 						                 }
+						                 
 						                 console.log(this.userList);
 										
 						        }, response => {
@@ -284,26 +287,6 @@
 	background: none !important;
 	box-shadow: none !important;
 }
-/*.main div.search input{
-	width:22.6em;
-	outline: none;
-	background: none;
-	border:none;
-	color:#fff;
-	padding-left:1em;
-}
-.main div.search div#icon{
-	position:absolute;
-	height:2em;
-	width:2em;
-	background-image: url(../assets/Manage/search.png);
-	background-size: contain;
-	top:0px;
-	right:0px;
-}
-.main div.search div#icon:hover{
-	top:2px;
-}*/
 
 .main div.search input::-webkit-input-placeholder {
   color: #fff;

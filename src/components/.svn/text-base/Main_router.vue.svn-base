@@ -1,6 +1,6 @@
 <template>
 	<ul class="show_list" :view-id="changeP">
-		            		<li >
+		            		<li id="show_list_li1">
 		            			<div class="top">
 		            				<span>
 		            					日志访问统计
@@ -394,6 +394,7 @@ export default {
 }
 </script>
 <style scoped="scoped">
+
 .main ul.show_list{
 	height:calc( 100% - 8%);
 }
@@ -405,6 +406,12 @@ export default {
 	color:white;
 	box-shadow: 3px 10px 10px #233033;
 	overflow: auto;
+}
+.user ul.show_list{
+	height:100%;
+}
+.user ul.show_list>li{
+	margin-bottom: 1em;
 }
 .main ul.show_list>li{
 	/*height:22em;*/
@@ -458,5 +465,6 @@ export default {
 	margin:0px auto;
 	/*background-image: url(../../images/funcon.png);*/
 }
+
 
 </style>

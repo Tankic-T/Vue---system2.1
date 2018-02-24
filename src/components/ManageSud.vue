@@ -29,8 +29,8 @@
 										  		  <div class="userDetail" v-show="showForm == 'user'" style="width:780px;height:560px;margin:0px auto;">
 										  		  	<div class="showIcon" style="float:left;height:200px;width:200px;color:#b9cdd7;">
 										  		  		
-										  		  		 <Upload
-											                	action=uploadUrl
+										  		  		 <Upload 
+											                	:action="uploadUrl"
 											                	:format="['jpg','jpeg','gif','png']"
 											                	:on-format-error="handleFormatError"
 											               		:max-size = "1024000"
@@ -47,16 +47,16 @@
 										  		  	<div class="userForm" style="width:560px;float:left;border-left:1px dashed #ddd;margin-left:20px">
 										  		  		
 										  		  		 	
-										  		  		<Form ref="formInline"  :rules="formInline" :model="detailUserMsg" :label-width="100">
-											         	<FormItem prop="LOGNAME" label="登录账号" >
-												            <Input type="text" v-model="detailUserMsg.LOGNAME" placeholder="请输入">
-												            </Input>
-												        </FormItem>
-												        <FormItem prop="MIAOSHU" label="用户名">
+										  		  		<Form  ref="detailUserMsg"  :rules="formInlineT" :model="detailUserMsg" :label-width="100">
+												        <FormItem prop="USER_MC" label="用户名">
 												            <Input type="text" v-model="detailUserMsg.USER_MC" placeholder="请输入">
 												            </Input>
 												        </FormItem>
-												        <FormItem prop="MIAOSHU" label="密码">
+												        <FormItem label="登录账号" >
+												            <Input title="登录账号不能修改" disabled="disabled"  type="text" v-model="detailUserMsg.LOGNAME" placeholder="请输入">
+												            </Input>
+												        </FormItem>
+												        <FormItem prop="PASSWORD" label="密码">
 												            <Input type="password" v-model="detailUserMsg.PASSWORD" placeholder="请输入">
 												            </Input>
 												        </FormItem>
@@ -64,15 +64,15 @@
 												            <Input type="text" v-model="detailUserMsg.SHEBEI_BH" placeholder="请输入">
 												            </Input>
 												        </FormItem>
-												        <FormItem prop="MIAOSHU" label="内部短号">
+												        <FormItem prop="NEIBU_DH" label="内部短号">
 												            <Input type="text" v-model="detailUserMsg.NEIBU_DH" placeholder="请输入">
 												            </Input>
 												        </FormItem>
-												        <FormItem prop="MIAOSHU" label="时间要求">
-												            <Input type="text" v-model="detailUserMsg.DATE_YQ" placeholder="请输入">
+												        <FormItem prop="DATE_YQ" label="时间要求">
+												            <Input  v-model="detailUserMsg.DATE_YQ" placeholder="请输入">
 												            </Input>
 												        </FormItem>
-												        <FormItem prop="MIAOSHU" label="邮箱">
+												        <FormItem prop="EMAIL" label="邮箱">
 												            <Input type="text" v-model="detailUserMsg.EMAIL" placeholder="请输入">
 												            </Input>
 												        </FormItem>
@@ -94,11 +94,11 @@
 
 												        	
 												        </FormItem>-->
-												        <FormItem prop="MIAOSHU" label="用户描述">
+												        <FormItem prop="BEIZHU" label="用户描述">
 												            <Input type="textarea" :autosize="{minRows: 2,maxRows: 2}" v-model="detailUserMsg.BEIZHU" placeholder="请输入">
 												            </Input>
 												        </FormItem>
-												        <Button type="primary" style="float:right;" @click="saveUser('formInline')">保存</Button>
+												        <Button type="primary" style="float:right;" @click="saveUser('detailUserMsg')">保存</Button>
 											   		 </Form>
 										  		  	</div>
 											  		  	
@@ -254,11 +254,11 @@
 							            <Input type="text" v-model="addUserMsg.SHEBEI_BH" placeholder="请输入">
 							            </Input>
 							        </FormItem>
-							        <FormItem  prop="noEmpty" label="内部短号" >
+							        <FormItem  prop="NEIBU_DH" label="内部短号" >
 							            <Input type="text" v-model="addUserMsg.NEIBU_DH" placeholder="请输入">
 							            </Input>
 							        </FormItem>
-							        <FormItem  label="时间要求" >
+							        <FormItem  prop="DATE_YQ"  label="时间要求" >
 							            <Input type="text" v-model="addUserMsg.DATE_YQ" placeholder="请输入">
 							            </Input>
 							        </FormItem>
@@ -272,12 +272,12 @@
 							        </FormItem>-->
 							        <FormItem prop="MIAOSHU" label="用户头像">
 							            <Upload 
-						                	action=uploadUrl
+						                	:action="uploadUrl"
 						                	:format="['jpg','jpeg','gif','png']"
 						                	:on-format-error="handleFormatError"
 						               		:max-size = "1024000"
 						                	:on-success="UploadAdd"
-						                	:show-upload-list= "true"
+						                	:show-upload-list= "false"
 						                	:on-error="Uploaderror">
 						        			<Button  style="color:#b9cdd7" type="ghost" icon="ios-cloud-upload-outline"><span  style="color:#b9cdd7">选择要上传文件的文件</span></Button>
 						    			</Upload>
@@ -315,6 +315,36 @@
   let id = 1000;
 	export default{
 		  data (){
+		  	
+		  	let LogName=[];
+		  	
+		  			this.$http.get(config.content+'/asmx/OrganizationService.asmx/GetOrgInfoByParentId',{params:{sjId:this.$store.state.placeId}}).then(response => {			
+										let result = response.body;
+						                result = $.parseXML(result);
+						                let obj;
+						                 $(result).find("string").each(function(i){                     
+						                 	obj=$.parseJSON($(this).text());                      
+						                })
+						                if(obj.Result){
+						                	for(let i=0;i<obj.Result.length;i++){
+						                	
+						                	for(let c=0;c<obj.Result[i].children.length;c++){
+						                		LogName.push(obj.Result[i].children[c].loginName);
+						                		this.LogName.push(obj.Result[i].children[c].loginName);
+						                	}
+						                	
+						                }
+						                }else{
+						                	LogName = [];
+						                }
+						                
+						              
+						                
+						        }, response => {
+						            console.log("error");
+						        });
+		  	
+		  	
 		  	const validatePass = (rule, value, callback) => {
                 if (value === '') {
                     callback(new Error('请输入密码'));
@@ -339,11 +369,27 @@
             	
             	let reg = new RegExp("^[A-Za-z0-9]{1,16}?$");  
             	let data = $.trim(value);
+            	let log;		//是否可用
+
+            	if(this.LogName){
+            		
+            		this.LogName.indexOf($.trim(value)) == -1?
+            		log = true:
+            		log = false;
+            	}else{
+            		
+            		LogName.indexOf($.trim(value)) == -1 ?
+            		log = true:
+            		log = false;
+            		
+            	}
             	let test =function(){
-            		if (this.LogName.indexOf($.trim(value)) != -1) {
-	                    	callback(new Error('该昵称已有人使用请重新输入'));
+            		if (log) {
+	                    	
+	                    	callback();
+	                    	
 	               		}else{
-	               		 	callback();
+	               		 	callback(new Error('该昵称已有人使用请重新输入'));
 	               		 }
             	}
             	if(reg.test(data)){
@@ -365,6 +411,7 @@
 		    					
 		    					local:"",
 		    					tborder:false,
+		    					pid:"",
 		    					//defaultIcon:require("../../assets/save.png"),
 		    					uploadUrl:config.content+"/asmx/UserManager.asmx/UploadFile",
 		    					//可编辑树
@@ -427,21 +474,47 @@
 		    					orgList: [],
 		    					formInline:{
 		    						 PASSWORD: [
-						                        { required: true, message: '清输入密码',   trigger: 'blur' }
+						                        { required: true, message: '请输入密码',   trigger: 'blur' }
 						                    ],
 						            PASSWORDO: [
 						                        {required: true,  validator: validatePassCheck, trigger: 'blur' }
 						                    ],
 									EMAIL: [
 					                        { required: true, message: '邮箱不能为空', trigger: 'blur' },
-					                        { type: 'email', message: '清输入正确的邮箱', trigger: 'blur' }
+					                        { type: 'email', message: '请输入正确的邮箱', trigger: 'blur' }
                     							],
+									
+									 DATE_YQ:[
+									 	 {required: true, message: '请输入时间要求', trigger: 'blur' }
+									 ],
 									 LOGNAME:[
 									 	 {required: true,  validator: validateLogName, trigger: 'blur' }
 									 ],
-									 ROLE_MC:[
+									
+									 USER_MC: [
+							            { required: true, message: '请输入用户名称', trigger: 'blur'},
+							          ],
+							          SHEBEI_BH:[
+							            { required: true, message: '请输入电话号码', trigger: 'blur'},
+							          ],
+		    					},
+		    					formInlineT:{
+		    						LOGNAME:[
 									 	 {required: true,  validator: validateLogName, trigger: 'blur' }
 									 ],
+		    						 PASSWORD: [
+						                        { required: true, message: '请输入密码',   trigger: 'blur' }
+						                    ],
+						      
+									EMAIL: [
+					                        { required: true, message: '邮箱不能为空', trigger: 'blur' },
+					                        { type: 'email', message: '请输入正确的邮箱', trigger: 'blur' }
+                    							],
+			
+									 DATE_YQ:[
+									 	 {required: true, message: '请输入时间要求', trigger: 'blur' }
+									 ],
+									
 									 USER_MC: [
 							            { required: true, message: '请输入用户名称', trigger: 'blur'},
 							          ],
@@ -451,7 +524,7 @@
 		    					},
 		    					formInline2:{
 		    						 JIGOU_MC: [
-						                        { required: true, message: '清输入机构名称',   trigger: 'blur' }
+						                        { required: true, message: '请输入机构名称',   trigger: 'blur' }
 						                    ],
 		    					},
 								defaultProps: {
@@ -486,10 +559,11 @@
 		    			return this.$store.state.LOCAL_MC;
 		    		}
 		    	},
+		    	
 		    	mounted(){
 		    		$("table.msg_table tr:odd").addClass("odd");
-		    		this.reloadMapList();
-		    		this.reloadTree();
+					this.reloadTree();
+					this.reloadMapList();
 		    	},
 		    	methods:{
 		    		closeModal:function(){
@@ -678,6 +752,8 @@
 		    		},
 		    		saveUser:function(name){
 		    			
+		    			
+		    			console.log(this.detailUserMsg);
 		    			this.$refs[name].validate((valid) => {
 				          if (valid) {
 				          	let jsons=this.detailUserMsg;
@@ -685,9 +761,11 @@
 			    			
 			    			delete jsons.JIGOU_ID_NAME;
 			    			jsons=JSON.stringify(jsons);
+			    			
 			                this.$http.get(config.content+'/asmx/UserManager.asmx/UpdateUserData',{params:{
 			                    json:jsons
 				                    	}}).then(response => {
+				                    		
 											this.$Message.success('提交成功');
 								               this.modalTotal = false;
 								               this.$Notice.success({
@@ -727,6 +805,8 @@
 		    			let jsons=this.addUserMsg;
 		    			jsons.PASSWORD = $.trim(jsons.PASSWORD );
 		    			jsons=JSON.stringify(jsons);
+		    			
+		    			
 		                this.$http.get(config.content+'/asmx/UserManager.asmx/AddUserData',{params:{
 		                    json:jsons
 			                    	}}).then(response => {
@@ -737,6 +817,8 @@
 						                 $(result).find("string").each(function(i){                     
 						                 	obj=$.parseJSON($(this).text());                      
 						                });
+						                
+						            this.LogName.push(this.addUserMsg.LOGNAME);
 			                    		
 										this.$Message.success('提交成功');
 							               this.modalTotal = false;
@@ -806,21 +888,9 @@
 					},
 					appendUser(node,data) {
 		    		 		this.addUserMsg={
-		    						/*id:null,
-		    						label:null,
-		    						data:null,
-		    						node:null,
-		    						LOGNAME:33,
-		    						USER_MC:null,
-		    						PASSWORD:null,
-		    						TOUXIANG:null,
-		    						SHEBEI_BH:null,
-		    						NEIBU_DH:null,
-		    						DATE_YQ:null,
-		    						JIGOU_ID:null,
-		    						EMAIL:null,
-		    						BEIZHU:null,*/
 		    					},
+		    				this.addUserMsg.PASSWORDO= null;
+		    				this.$refs['addUserMsg'].resetFields();
 		    		 		this.userModel=true;
 		    		 		this.addUserMsg.data=data;
 		    		 		this.addUserMsg.node=node;
@@ -855,6 +925,15 @@
 						        const index = children.findIndex(d => d.id ===this.addUserMsg.data.id);
 						        children.splice(index, 1);
 						        
+						        
+						        let removeLog = function(a,val) {
+														let index = a.indexOf(val);
+														if (index > -1) {
+														a.splice(index, 1);
+														}
+										};
+						        
+						        
 						         this.$http.get(config.content+'/asmx/UserManager.asmx/DeleteUserByID',{params:{id:this.addUserMsg.data.id,}}).then(response => {			
 										let result = response.body;
 						                let father=[];
@@ -863,6 +942,9 @@
 						                 $(result).find("string").each(function(i){                     
 						                 	obj=$.parseJSON($(this).text());                      
 						                });
+						                
+						                this.LogName.removeLog(this.LogName,this.addUserMsg.LOGNAME);
+						                
 						                this.$Message.success('删除成功');
 						                this.$Notice.success({
 						                    title: '已成功删除该用户',
@@ -896,7 +978,7 @@
 						    this.$refs.singleTable.clearSelection();
 							this.titleMsg="机构";
 							this.showForm="org";
-							this.$http.get(config.content+'/asmx/OrganizationService.asmx/GetOrgInfoById',{params:{jgId:a.id,}}).then(response => {			
+							this.$http.get(config.content+'/asmx/OrganizationService.asmx/GetOrgInfoById',{params:{jgId:a.id}}).then(response => {			
 										let result = response.body;
 						                let father=[];
 						                 result = $.parseXML(result);
@@ -906,6 +988,8 @@
 						                })
 						                obj.Result?this.detailOrgMsg=obj.Result[0]:
 						                this.detailOrgMsg={};
+										
+										
 										
 						        }, response => {
 						            console.log("error");
@@ -924,13 +1008,26 @@
 						                });
 						                
 						                obj.Result?this.detailUserMsg=obj.Result[0]:
+						                
+						               
 						                this.detailUserMsg={};
+						                
+						                
+										this.detailUserMsg.DATE_YQ=this.detailUserMsg.DATE_YQ+"";
+										
+						                this.$refs['detailUserMsg'].resetFields();
+						                
+						                
+						                
+						                console.log(obj.Result[0]);
+						                
 						        }, response => {
 						            console.log("error");
 						        });
 						        
 							//获取角色信息
-							console.log(a.id);
+							
+							
 							this.$http.get(config.content+'/asmx/UserRole.asmx/GetUserRoleById',{params:{orgaId:a.id}}).then(response => {			
 										this.roleHas=0;
 										let result = response.body;
@@ -957,8 +1054,7 @@
 							                }
 							                index=this.mapTableId.indexOf(obj.Result[0].ROLE_ID); 
 							                this.defalutAdd=false;
-							                console.log(this.mapTableId);
-							                console.log(obj.Result[0].ROLE_ID);
+							                
 							                this.$refs.singleTable.setCurrentRow(this.roleTable[index]);
 							              
 						               }  
@@ -969,12 +1065,7 @@
 					},
 					renderContent(h, { node, data, store }) {
 						
-						/*<el-button type="ghost" style="font-size: 12px;"  on-click={ () => this.appendUser(node,data) }>
-						         	<i class="el-icon-plus el-icon--center" on-click={ () => this.appendUser(node,data) }></i>
-						         </el-button>
-						        <el-button type="ghost" style="font-size: 12px;" on-click={ () => this.removeOrg(node, data) }>
-					             	<i class="el-icon-delete el-icon--center"  on-click={ () => this.removeOrg(node, data) }></i>
-					              </el-button>*/
+	
 						
 						let btn="";
 						let span=<span>
@@ -1000,7 +1091,8 @@
 					          </span>);
 					      },
 					reloadMapList(){
-		    			this.$http.get(config.content+'/asmx/RoleService.asmx/GetRoleDatataByPage',{params:{SYS_ID:this.$store.state.placeId,pageSize:104,pageIndex:0,keyword:null}}).then(response => {	
+		    			
+		    			this.$http.get(config.content+'/asmx/RoleService.asmx/GetRoleDatataByPage',{params:{SYS_ID:this.$store.state.placeId,pageSize:104,pageIndex:0,keyword:null}}).then(response => {
 										let result = response.body;
 						                let father=[];
 						                result = $.parseXML(result);
@@ -1016,6 +1108,7 @@
 						        }, response => {
 						            console.log("error");
 						        });
+						        
 		    		},
 		    		reloadTree(){
 		    			this.$http.get(config.content+'/asmx/OrganizationService.asmx/GetOrgInfoByParentId',{params:{sjId:this.$store.state.placeId}}).then(response => {			
@@ -1026,16 +1119,26 @@
 						                 $(result).find("string").each(function(i){                     
 						                 	obj=$.parseJSON($(this).text());                      
 						                })
-						                this.orgList=obj.Result;
+						                 
+						                 if(obj.Result){
+						                 	
+						                 	 this.orgList=obj.Result;
 						                
-						                for(let i=0;i<obj.Result.length;i++){
-						                	
-						                	for(let c=0;c<obj.Result[i].children.length;c++){
-						                		this.LogName.push(obj.Result[i].children[c].loginName);
-						                	}
-						                	
-						                }
-						                console.log(this.LogName);
+								                for(let i=0;i<obj.Result.length;i++){
+								                	
+								                	for(let c=0;c<obj.Result[i].children.length;c++){
+								                		this.LogName.push(obj.Result[i].children[c].loginName);
+								                	}
+								                	
+								                }
+						                 	
+						                 }else{
+						                 	
+						                 	this.orgList = [];
+						                 	this.LogName= [];
+						                 	
+						                 }
+						               
 						                
 						        }, response => {
 						            console.log("error");
@@ -1058,9 +1161,8 @@
 		    			$(res).find("string").each(function(i){                     
 							obj=$(this).text();                      
 						})
-		    			this.detailUserMsg.TOUXIANG=config.content+"/"+obj;
-		    			this.saveUser();
-		    			if(obj=="error"){
+		 				
+		    			if(obj=="" || !obj ||obj==" "){
 		        					 	swal({
 				                            title: "提示",
 				                            text: "文件上传失败!",
@@ -1070,16 +1172,23 @@
 		        					}else{
 		        					 		this.$Message.success('上传成功');
 		        					 	}
+		        					
+		        		this.detailUserMsg.TOUXIANG=config.content+"/"+obj;
+		    			this.saveUser();			
 		    		},
 					UploadAdd( response, file, fileList){
-		    			let res=$.parseXML(response);
-		    			let obj;
-		    			$(res).find("string").each(function(i){                     
-							obj=$(this).text();                      
-						})
-		    			this.addUserMsg.TOUXIANG=config.content+"/"+obj;
-		    			this.handleSubmitUser('formInline');
-		    			if(obj=="error"){
+		        					
+		        		if(this.handleSubmitUser('addUserMsg')){
+		        			
+		        			let res=$.parseXML(response);
+			    			let obj;
+			    			$(res).find("string").each(function(i){                     
+								obj=$(this).text();                      
+							})
+			    			this.addUserMsg.TOUXIANG=config.content+"/"+obj;
+			    			
+			    			console.log(obj);
+		    			    if(obj=="" || !obj ||obj==" "){
 		        					 	swal({
 				                            title: "提示",
 				                            text: "文件上传失败!",
@@ -1087,8 +1196,25 @@
 				                            confirmButtonText: "确定",
 				                        	});
 		        					}else{
-		        					 		this.$Message.success('上传成功');
+		        					 		swal({
+				                            title: "提示",
+				                            text: "文件上传成功!",
+				                            type: "success",
+				                            confirmButtonText: "确定",
+				                        	});
 		        					 	}
+		        			
+		        			
+		        		}else{
+		        			
+		        			swal({
+				                            title: "提示",
+				                            text: "请完善用户信息!",
+				                            type: "error",
+				                            confirmButtonText: "确定",
+				             });
+		        			
+		        		}
 		    		},
 		    		Uploaderror(response, file, fileList){
 		    			swal({
@@ -1103,6 +1229,9 @@
 </script>
 
 <style scoped="scoped">
+	div.main div.listPanel .page_list{
+		height:100%;
+	}
 	div.manageTree{
 		min-width: 200px;
 		background-color: #1c303a;
@@ -1165,6 +1294,7 @@
 	div.manageTree::-webkit-scrollbar
 	{
 		width: 10px;
+		height:10px;
 		background-color: #F5F5F5;
 	}
 	

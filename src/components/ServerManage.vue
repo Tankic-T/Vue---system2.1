@@ -9,7 +9,7 @@
 		    <div class="add" @click="addServer"><span></span>增加</div>
 		    <div class="input">
 			    <span>操作系统</span>
-				<Select class="input" v-model="keyword" @change="searchMsg" style="width:200px;background:none">
+				<Select class="input" v-model="keyword" @on-change="searchMsg" style="width:200px;background:none">
 						<Option value="">所有</Option>
 	       				<Option value="Windows xp">Windows xp</Option>
 		                <Option value="Windows Server" select>Windows Server</Option>
@@ -185,7 +185,7 @@
 		    			}
 		    		},
 		    		searchMsg(){
-		    	
+		    			this.pageIndex = 1;
 		    			this.reloadTable();
 		    		},
 		    		delServer(){
@@ -330,7 +330,7 @@
 }
 </script>
 
-<style scoped="scoped">
+<style  scoped="scoped">
 /**********当前位置**********/
 .main .table{
 	margin-bottom:0px;

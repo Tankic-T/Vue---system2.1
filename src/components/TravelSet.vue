@@ -11,9 +11,9 @@
 		    
 		    <div class="input">
 			    <span>使用情况</span>
-				<Select class="input" v-model="sta" @change="searchMsg" style="width:200px;background:none">
+				<Select class="input" v-model="sta" @on-change="searchMsg" style="width:200px;background:none">
 						<Option value="">所有</Option>
-						<Option value="1" >使用中</Option>
+						<Option value="1">使用中</Option>
 	                    <Option value="2">未使用</Option>
 	    		</Select>
 			</div>
@@ -70,8 +70,9 @@
 	        </FormItem>
 	        <FormItem prop="STA_DATE" label="开始时间">
 	            <el-date-picker  
+	               id= "sDate"
 				   class="reset-el-26 maxw-120"  
-				   v-model="travelSet.STA_DATE"  
+				   v-model="STA_DATE"  
 				   align="left"  
 				   type="datetime"  
 				   placeholder="选择开始日期"  
@@ -80,17 +81,21 @@
 				   :picker-options="pickerOptions1">  
 				 </el-date-picker>  
 	        </FormItem>
-	        <FormItem prop="END_DATE" label="结束时间">
-	            <el-date-picker  
+	        <FormItem  prop="END_DATE" label="结束时间">
+	           
+	           
+	          <el-date-picker  
+	           	  id = "eDate"
 				  class="reset-el-26 maxw-120"  
-				  v-model="travelSet.END_DATE"  
+				  v-model="END_DATE"  
 				  align="left"  
 				  type="datetime"  
 				  placeholder="选择结束日期"  
 				  ref="picker2"  
 				  :editable="canEdit"  
-				  :picker-options="pickerOptions0">  
-				</el-date-picker> 
+				  :picker-options="pickerOptions0">   
+				</el-date-picker>
+				
 	        </FormItem>
    		 </Form>
    		  <div slot="footer">
@@ -174,6 +179,8 @@
 		    					sta1Date:null,
 		    					end1Date:null,
 		    					canEdit:true,
+		    					END_DATE:null,  //等同于travelSet.END_DATE  解决IE   不能显示的问题。
+		    					STA_DATE:null,
 		    					travelSet: {
 				                    NAME:null,
 				                    SHEBEI_BH:null,
@@ -201,12 +208,13 @@
 					                        { required: true, message: '请选择设备使用状态', trigger: 'blur' },
 					                    ],
 					                    
-					                   /* STA_DATE: [
+					                    /* STA_DATE: [
 					                        { required: true, message: '开始时间', trigger: 'blur' },
 					                    ],
 					                    END_DATE: [
 					                        { required: true, message: '开始时间', trigger: 'blur' },
 					                    ],*/
+					                   
 				                	}
 		    					
 								}
@@ -250,6 +258,7 @@
 		    			}
 		    		},
 		    		searchMsg(){
+		    			this.pageIndex = 1;
 		    			this.reloadTable();
 		    		},
 		    		openDel(){
@@ -275,8 +284,8 @@
 		                    if (valid) {
 		                    	let jsons=this.travelSet;
 		                    	jsons.SYS_ID=this.$store.state.placeId;
-								jsons.END_DATE=this.reizeDate(jsons.END_DATE);
-								jsons.STA_DATE=this.reizeDate(jsons.STA_DATE);
+								jsons.END_DATE=this.reizeDate(this.END_DATE);
+								jsons.STA_DATE=this.reizeDate(this.STA_DATE);
 		                    	jsons=JSON.stringify(jsons);
 		                    	
 		                    	if(this.submitType =="add"){
@@ -347,6 +356,13 @@
 		    				
 		    				this.updateMsg.SHEBEI_ZT=="设备使用中"?this.updateMsg.SHEBEI_ZT=1:this.updateMsg.SHEBEI_ZT=2;
 			    			this.travelSet=this.updateMsg;
+			    			
+			    			this.STA_DATE = this.updateMsg.STA_DATE;
+			    			this.END_DATE=this.updateMsg.END_DATE;
+			    			
+			    			$("#sDate>input").attr("placeholder",this.updateMsg.STA_DATE);
+			    			$("#eDate>input").attr("placeholder",this.updateMsg.END_DATE);
+			    			
 			    			this.modalTotal=true;
 		    			}
 		    			

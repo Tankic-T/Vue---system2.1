@@ -262,6 +262,7 @@
 						        });
 		    		},
 		    		searchMsg(){
+		    			this.pageIndex = 1;
 		    			this.reloadTable();
 		    		},
 		    		openDel(){

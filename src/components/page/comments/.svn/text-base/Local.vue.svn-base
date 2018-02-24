@@ -1,6 +1,7 @@
 <template>
 	<div class="local">
-		当前位置：<span class="pos1">Local</span><span class="pos2">{{ $route.name}}</span>
+		当前位置：<span class="pos1">Local</span>
+		<span class="pos2">{{ $route.name}}</span>
 	</div>
 </template>
 
@@ -12,8 +13,9 @@
 		computed:{
 		    		Local:function(){
 		    			
+		    			console.log(this.$store.state.LOCAL_MC);
 		    			let str="";
-		    			this.$store.state.LOCAL_MC?str=his.$store.state.LOCAL_MC+"<":null;
+		    			this.$store.state.LOCAL_MC?str=his.$store.state.LOCAL_MC+">":null;
 		    			
 		    			return str;
 		    		},

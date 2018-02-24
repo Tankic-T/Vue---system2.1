@@ -310,6 +310,7 @@
 		                });
 		    		},
 		    		searchMsg(){
+		    			this.pageIndex = 1;
 		    			this.reloadTable();
 		    		},
 		    		openDel(){
@@ -480,7 +481,7 @@
 }
 </script>
 
-<style scoped="scoped">
+<style  scoped="scoped">
 	
 
 /**********当前位置**********/

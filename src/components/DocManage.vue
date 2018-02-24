@@ -9,7 +9,7 @@
 		    <div class="add" @click="addServer"><span></span>增加</div>
 		    <div class="input">
 			    <span>字典名称：</span>
-			     <Input type="text" v-model="keyword" placeholder="请输入" style="width:180px">
+			     <Input type="text" @on-change="searchMsg" v-model="keyword" placeholder="请输入" style="width:200px">
 		           </Input>
 			</div>
 	</div>
@@ -44,7 +44,7 @@
 		  </div>
 		  <div class="title">字典名称</div>
 		            
-         <Form ref="formInline" :model="docMsg" :rules="ruleInline" :label-width="0">
+         <Form ref="docMsg" :model="docMsg" :rules="ruleInline" :label-width="0">
 	        
 	        <FormItem prop="LEIXING_MC">
 	            <Input type="text" v-model="docMsg.LEIXING_MC" placeholder="请输入">
@@ -60,20 +60,20 @@
    		 <div class="title">字典选项</div>
    		 
    		 
-   		 <Form ref="formInline2" :model="treeEle" :rules="ruleInline2" :label-width="0" inline>
+   		 <Form ref="treeEle" :model="treeEle" :rules="ruleInline2" :label-width="0" inline>
 	        
 	        
 	        <Row>
                 <Col span="17">
                 	
                 	<FormItem prop="NAME" style="width:100%">
-	      				<Input type="text" v-model="treeEle.NAME" placeholder="请输入选项名称">
+	      				<Input id="inputEle" type="text" v-model="treeEle.NAME" placeholder="请输入选项名称">
 						            </Input>  
 	       			 </FormItem>
                 	   
                 </Col>
                 <Col span="4" offset="1">
-                	<Button type="primary" @click="addDicEle('formInline2')"><Icon size="16" type="ios-plus-outline"></Icon>&#160;添加字典选项</Button>
+                	<Button type="primary" @click="addDicEle('treeEle')"><Icon size="16" type="ios-plus-outline"></Icon>&#160;添加字典选项</Button>
                 </Col>
             </Row>
 	
@@ -93,7 +93,7 @@
 			</el-tree>
    		  <div slot="footer">
 	        	<Button type="text" @click="closeModal">取消</Button>
-	            <Button type="primary" @click="SubmitDoc('formInline')">提交</Button>
+	            <Button type="primary" @click="SubmitDoc('docMsg')">提交</Button>
         	</div>
     </Modal>
 	<div class="page_list">
@@ -212,11 +212,12 @@
 		    			}else{
 		    				this.$store.state.tableselectCode=[];
 		    			}
-		    			console.log(this.$store.state.tableselectCode);
 		    		},
 		    		searchMsg(){
-		    	
-		    			this.reloadTable();
+		    			
+			    			this.pageIndex = 1;
+			    			this.reloadTable();
+		    			
 		    		},
 		    		delServer(){
 		    			
@@ -234,10 +235,21 @@
 		    		 SubmitDoc(name) {
 		                this.$refs[name].validate((valid) => {
 		                    if (valid) {
-		                    	let jsons=this.tableList;
+		                    	let jsons="";
+		                    		jsons=this.tableList;
+		                    	
+		                    	console.log(jsons.length);
+		                    
+		                    	
+		                    	
 			                    let SYS_ID=this.$store.state.placeId;
 		                    	if(this.modelTitle=="添加"){
+		                    		
+		                    		if(jsons.length>0){
+		                    			
+		                    			
 		                    		jsons=JSON.stringify(jsons);
+		                    		console.log(jsons);
 			                    	this.$http.get(config.content+'/asmx/SourceDicService.asmx/AddDicData',{params:{json:jsons,SYS_ID:SYS_ID}}).then(response => {
 											let result = response.body;
 							                 result = $.parseXML(result);
@@ -245,11 +257,23 @@
 							                 $(result).find("string").each(function(i){                     
 							                 	obj=$.parseJSON($(this).text());                      
 							                })
+							                 
+							                 this.$Message.success('字典添加成功!');
 							                 	this.reloadTable();
-											console.log(obj);
 							        }, response => {
 							            console.log("error");
 							        });
+		                    		
+		                    		this.modalTotal = false;
+		                    			
+		                    		}
+		                    		else{
+		                    			
+		                    		 swal("错误", "你请填写字典项", "error"); 
+		                    		 
+		                    		};
+		                    	 
+		                    	
 		                    	}else if(this.modelTitle=="编辑"){
 		                    		
 		                    		for(let a of jsons){
@@ -257,26 +281,26 @@
 		                    			a.LEIXING=this.docMsg.LEIXING;
 		                    		}
 		                    		jsons=JSON.stringify(jsons);
-		                    		/*this.$http.get(config.content+'/asmx/SourceDicService.asmx/UpdateDicData',{params:{json:jsons,}}).then(response => {
+		                    		this.$http.get(config.content+'/asmx/SourceDicService.asmx/UpdateDicData',{params:{json:jsons,}}).then(response => {
 											let result = response.body;
 							                 result = $.parseXML(result);
 							                 let obj;
 							                 $(result).find("string").each(function(i){                     
 							                 	obj=$.parseJSON($(this).text());                      
 							                })
-							                console.log(obj);
+							                this.$Message.success('字典修改成功!');
+							                
 												this.reloadTable();
 							        }, response => {
 							            console.log("error");
-							        });*/
-		                    		
+							        });
+		                    		 this.modalTotal = false;
 		                    	}
-		                    
 		                    } else{
 		                        this.$Message.error('表单验证失败!');
 		                    }
 		                });
-		                this.modalTotal = false;
+		                
 		            },
 		            delDocF:function(data){
 		            	this.modaldel = true;
@@ -288,6 +312,9 @@
 		            	this.docMsg.LEIXING_MC=data.LEIXING_MC;
 		            	this.docMsg.LEIXING = data.LEIXING;
 		            	this.docMsg.ZD_ID = data.ZD_ID;
+		            	
+		            	console.log(this.docMsg);
+		            	
 		            	this.modalTotal=true;
 		    			this.$http.get(config.content+'/asmx/SourceDicService.asmx/GetDicDetailByParentID',{params:{
 							LEIXING:data.LEIXING}}).then(response => {
@@ -342,7 +369,6 @@
 		    		addServer(){
 		    			this.modelTitle="添加";
 		    			this.modalTotal=true;
-		    			
 		    			this.treeEle={};
 		    			this.docMsg={};
 		    			this.tableList=[];
@@ -371,6 +397,10 @@
 							                 $(result).find("string").each(function(i){                     
 							                 	obj=$.parseJSON($(this).text());                      
 							                })
+							                 
+							                 this.$Message.success('字典项添加成功!');
+							                 
+							                 
 							                this.reloadTable();
 											
 							        }, response => {
@@ -400,6 +430,8 @@
 							        
 		                    	}
 				    			this.tableList.push(ele);
+				    			this.treeEle.NAME = null;
+				    			$("#inputEle>input").val("");
 		                    } else {
 		                        this.$Message.error('必填项不能为空！');
 		                    }
@@ -410,6 +442,7 @@
 		    			this.isfA = data;
 		    		},
 		    		reloadTable(){
+		    			
 		    			let Index=this.pageIndex-1;
 		    			this.$http.get(config.content+'/asmx/SourceDicService.asmx/GetDicDataByPage',{params:{pageSize:this.pageSize,pageIndex:Index,keyword:this.keyword}}).then(response => {
 						 								
@@ -427,22 +460,20 @@
 						                 	obj.Result.TableInfo[i].cancel="doc";
 						                 }
 						                 this.tr=obj.Result.TableInfo;
-						               //  console.log(this.tr);
+						                 console.log(this.tr);
 						                 this.totalNum=obj.Result.PCount;
 						                 this.totalPage=obj.Result.RCount;
 										
 						        }, response => {
 						            console.log("error");
 						        });
+						        
 		    		},
 		    		selectTree(a,b,c){
-						console.log(a);
 		    			if((b && this.treeID.indexOf(a.CODE)==-1) || !b){
 		    				let type;
 			    			b ? type =0:type=1;
-			    			console.log(this.$store.state.placeId);
-			    			console.log(a.ZD_ID);
-			    			console.log(type);
+		
 			    			this.$http.get(config.content+'/asmx/SourceDicService.asmx/UpdateSysDicSta',{params:{sysID:this.$store.state.placeId,dicID:a.ZD_ID,type:type}}).then(response => {
 							 								
 											let result = response.body;
@@ -486,11 +517,12 @@
 										                 $(result).find("string").each(function(i){                     
 										                 	obj=$.parseJSON($(this).text());                      
 										                })
-										                
+										                 
+										                this.reloadTable();
 										                 this.$Notice.success({
 											                    title: '已成功删除选中数据。',
 											               });
-														this.reloadTable();
+														
 										        }, response => {
 										            console.log("error");
 										        });
@@ -522,6 +554,7 @@
 					      },
 		    		//下一页
 		    		nextPage(){
+		    			
 		    			if( this.pageIndex>this.totalPage-1){
 		    				this.$Message.error('对不起，没有该页');
 		    				this.pageIndex=this.totalPage;
@@ -529,6 +562,7 @@
 		    				this.pageIndex++;
 		    				this.reloadTable();
 		    			}
+		    			
 		    		},
 		    		prevPage(){
 		    			

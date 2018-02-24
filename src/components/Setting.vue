@@ -311,7 +311,7 @@
 }
 </script>
 
-<style scoped="scoped">
+<style  scoped="scoped">
 /**********当前位置**********/
 .main .table{
 	margin-bottom:0px;

@@ -30,13 +30,17 @@ const router = new VueRouter({
 
 const store = new Vuex.Store({
   state: {
-    placeId: "1101001",
+ 		placeId: "", //publicah
+    LOCAL_MC:"",
     tableallCode:[],   //当前页的所有code  12个
 		tableselectCode:[],
   },
   mutations: {
     changePlace (state , c) {
       state.placeId = c.placeId;
+    },
+    changeLoc (state , c){
+    	state.LOCAL_MC = c.LOCAL_MC;
     }
   }
 })

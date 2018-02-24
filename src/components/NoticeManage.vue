@@ -34,7 +34,7 @@
 		    <div class="add"    @click="addNotice"><span></span>增加</div>
 		    <div class="input">
 			    <span>按标题查询：</span>
-				 <Input type="text" v-model="keyword" placeholder="请输入" style="width:180px">
+				 <Input type="text" @on-change="searchMsg" v-model="keyword" placeholder="请输入" style="width:180px">
 	            </Input>
 			</div>
 		</div>
@@ -53,7 +53,7 @@
     <Modal
         v-model="modalTotal">
          <div slot="header" style="color:#57a3f3;text-align:left;font-size:20px;">
-		            <span>编辑数据</span>
+		            <span>{{cancelType}}公告</span>
 		  </div>
          <Form ref="formInline" :model="noticeMsg" :rules="ruleInline" :label-width="70">
          	<FormItem prop="BIAOTI" label="标题">
@@ -70,15 +70,28 @@
 	        </FormItem>
 	         <FormItem prop="FABU_SJ"  label="发布时间">
 	         	
-	         	<el-date-picker  
+	         	<!--<el-date-picker  
+	         		id="inputDate"
 				  class="reset-el-26 maxw-120"  
 				  v-model="noticeMsg.FABU_SJ"  
 				  type="datetime"  
-				  placeholder="选择结束日期"  
+				  placeholder="选择发布日期"  
 				  ref="picker3"  
-				  :editable="canEdit"  >
-				</el-date-picker>
-				
+				  :editable="canEdit"
+				  :picker-options="pickerOptions3"
+				    >
+				</el-date-picker>-->
+				<el-date-picker  
+					id="inputDate"
+				   class="reset-el-26 maxw-120"  
+				   v-model="FABU_SJ"  
+				   type="datetime"  
+				   placeholder="选择发布日期"  
+				   ref="picker3"  
+				   :editable="canEdit"  
+				   :picker-options="pickerOptions0">  
+				 </el-date-picker>
+				 
 	       	</FormItem>
 	       
    		 </Form>
@@ -149,6 +162,13 @@
 							          return time.getTime() > Date.now() || time.getTime() < ayearAgo || (vueIns.endDate && vueIns.endDate.getTime && (time.getTime() > vueIns.endDate.getTime()))  
 							        }  
 							    },
+							    pickerOptions3:{
+							    	 disabledDate(time) {  
+							          // 最多只能选择一年的  
+							          let ayearAgo = Date.now() - 31536000000  
+							          return /*time.getTime() > Date.now() || */time.getTime() < ayearAgo  || (vueIns.staDate && vueIns.staDate.getTime && (time.getTime() < vueIns.staDate.getTime()))  
+							        }  
+							    },
 		    					isA:false,
 		    					isfA:false,
 		    					modaldel:false,
@@ -160,10 +180,10 @@
 		    					keyword:null,
 		    					submitType:null,
 		    					canEdit:true,
-		    					
+		    					cancelType:"",
 		    					staDate:null,
 		    					endDate:null,
-		    					
+		    					FABU_SJ:null,
 		    					noticeMsg: {
 				                    BIAOTI:null,
 				                    NEIRONG:null,
@@ -217,7 +237,7 @@
 		    			}
 		    		},
 		    		searchMsg(){
-		    	
+		    			this.pageIndex = 1;
 		    			this.reloadTable();
 		    		},
 		    		delNotice(){
@@ -238,11 +258,25 @@
 		    			}
 		    		},
 		    		 handleSubmit(name) {
+		    		 	let formate=function(data){
+			                           
+			                           const d=new Date(data);
+			                           let h= d.getHours()<10? "0"+d.getHours() : d.getHours();
+			                           let m= d.getMinutes()<10? "0"+d.getMinutes() : d.getMinutes();
+			                           let s= d.getSeconds()<10? "0"+d.getSeconds() : d.getSeconds();
+			                           return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + h + ':' + m + ':' + s; 
+			                     };
 		                this.$refs[name].validate((valid) => {
 		                    if (valid) {
+		                    	this.noticeMsg.FABU_SJ=formate(this.noticeMsg.FABU_SJ);
+		                    	
+		                    	this.FABU_SJ ? this.noticeMsg.FABU_SJ = formate(this.FABU_SJ):
+		                    				   this.noticeMsg.FABU_SJ = null;
+		                    	
 		                    	let jsons=this.noticeMsg;
 		                    	jsons.SYS_ID=this.$store.state.placeId;
 		                    	jsons=JSON.stringify(jsons);
+		                    	
 		                    	if(this.submitType =="add"){
 		                    		this.$http.get(config.content+'/asmx/GongGaoService.asmx/AddGongGao',{params:{
 		                    			json:jsons
@@ -290,14 +324,25 @@
 		    				this.$Message.info('已取消。');
 		    		},
 		    		getTodo(data){
+
 		    			this.updateMsg=data;
+		    			$("#inputDate>input").attr("placeholder",data.FABU_SJ);
+
+		    
 		    		},
 		    		addNotice(){
 		    			this.submitType ="add";
+		    			this.cancelType = "添加";
+		    			this.FABU_SJ = null;
+		    			$("#inputDate>input").attr("placeholder","请填写发布时间");
+		    			this.noticeMsg = {
+		    				FABU_SJ:null,
+		    			};
 		    			this.modalTotal=true;
 		    		},
 		    		updateNotice(){
 		    			this.submitType ="update";
+		    			this.cancelType = "修改";
 		    			this.noticeMsg=this.updateMsg;
 		    			this.modalTotal=true;
 		    		},
@@ -371,7 +416,7 @@
 }
 </script>
 
-<style scoped="scoped">
+<style  scoped="scoped">
 /**********当前位置**********/
 .main .table{
 	margin-bottom:0px;

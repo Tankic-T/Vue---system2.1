@@ -17,14 +17,13 @@ export default [
         name:"主页",
          hashbang: true,
         component: Main_router,
-        
     },  
      {  
         path: '/OnlineUpdate', 
         name:"在线升级",
          hashbang: true,
         component: OnlineUpdate,
-        
+
     }, 
     {  
         path: '/ManageRole', 
@@ -38,6 +37,9 @@ export default [
         name:"巡航设备",
          hashbang: true,
         component: TravelSet,
+        meta: {
+			keepAlive: true // 需要被缓存
+			}
     },
       {  
         path: '/MapManage',  

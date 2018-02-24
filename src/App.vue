@@ -86,7 +86,10 @@
 		  			</ul>
 	  			</div>
   			</div>
-  				<router-view></router-view>
+	  			<keep-alive>
+	  				<router-view></router-view>
+	  			</keep-alive>
+
   		</div>
   	</div>
   </div>
@@ -203,25 +206,64 @@ export default {
   data(){
   	return{
   		placeId:null,      //三级目录ID
-  		roleType:"0",  //admin//user
-  		USER_MC:"",
-  		ROLE_MC:"",
+  		roleType:"0",  //admin//user --->publish
+  	//  roleType:"1",
+  	  account:"",
+  	  ticket:"",
   	}		
   },
-  mounted(){
-		this.getMsg();
+
+  beforeMount(){
+  		
+  		if(this.getC("account") && this.getC("account")!=" " && this.getC("account")!=""){
+
+  				sessionStorage.setItem("account",this.getC("account"));
+  				sessionStorage.setItem("ticket",this.getC("ticket"));
+  				
+  				this.account = this.getC("account");
+  				this.ticket  = this.getC("ticket");
+  			
+  			
+  			
+  		}else{
+  			
+  			if( sessionStorage.getItem("account") && sessionStorage.getItem("account") != '' && sessionStorage.getItem("account")!=" "){
+  				
+  					this.account = sessionStorage.getItem("account");
+  			    this.ticket  = sessionStorage.getItem("ticket");
+  			
+  			}else{
+  				
+  				swal({ 
+							  title: "身份已信息失效", 
+							  text: "请重新登录！", 
+							  type: "warning",
+							  showCancelButton: false, 
+							  confirmButtonColor: "#DD6B55",
+							  confirmButtonText: "确定", 
+							  closeOnConfirm: false
+							},
+							function(){
+							  window.location = config.quit;
+							});
+  			}
+
+  		}
+			this.getMsg();
   },
   methods:{
   	actionId:function(data){
   		this.placeId=data;
   	},
-		getMsg(){
-			let getC=function(name){
-			     var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
-			     var r = window.location.search.substr(1).match(reg);
+  	getC(name){
+  		
+  				let reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+			    let r = window.location.search.substr(1).match(reg);
 			     if(r!=null)return  decodeURI(r[2]); return null;
-			};
-			this.$http.get(config.content+'/asmx/LoginService.asmx/CheckLogin',{params:{account:getC("account"),ticket:getC('ticket')}}).then(response => {			
+  		
+  	},
+		getMsg(){
+			this.$http.get(config.content+'/asmx/LoginService.asmx/CheckLogin',{params:{account:this.account,ticket:this.ticket}}).then(response => {			
 										
 										this.roleHas=0;
 										let result = response.body;
@@ -230,21 +272,36 @@ export default {
 						        $(result).find("string").each(function(i){                     
 						                 	obj=$.parseJSON($(this).text());                      
 						        })
-						        console.log(obj.Result);
+										
 						        if(obj.Result){
-						        	
-						         
 						         obj.Result.type?this.roleType=obj.Result.type:this.roleType="0";
-						        
-						        
-						        			this.USER_MC=obj.Result.info[0]. USER_MC;
-						        			this.ROLE_MC=obj.Result.info[0]. ROLE_MC;
+
 											this.$store.state.USER_MC=obj.Result.info[0]. USER_MC;
 											this.$store.state.USER_ID=obj.Result.info[0]. USER_ID;
 											this.$store.state.ROLE_MC=obj.Result.info[0]. ROLE_MC;
-											this.$store.state.LOCAL_MC=obj.Result.info[0]. NAME;
-											
+								        if(obj.Result.type== "1"){   //超级管管理员
+								        	
+								        this.$store.state.LOCAL_MC='茂兰国家级自然保护区';
+													this.$store.commit("changePlace",{placeId:"1101001"});
+								        
+								        	
+								        }else{
+								        	
+								        	this.$store.state.LOCAL_MC=obj.Result.info[0]. NAME;
+								        	
+													this.$store.commit("changePlace",{placeId:obj.Result.info[0]. SHANGJI_ID});
+								        }
+						           console.log(this.$store.state.LOCAL_MC);
+						        }else{
+						        	
+											//	this.$store.commit("changePlace",{placeId:""}); --publish
+						        		
+						        		this.$store.commit("changePlace",{placeId:"1101001"});
+						        		
 						        }
+						        
+						       
+						       
 										
 						        }, response => {
 						           this.$Message.warn('系统繁忙！');
@@ -258,7 +315,11 @@ export default {
 
 <style>
 
-
+/***当前位置**/
+.main div.local{
+	color:#b9cdd7;
+	padding-left:1em;
+}
 /*自定义iview*/
 /*****model***********/
 
@@ -544,46 +605,7 @@ div.manageTree .ivu-input{
 	background-color: #1e2a3a;
 	color:#b9cdd7;
 }
-/*div.manageTree .el-table{
-	border:none;
-}
-div.manageTree .el-tabs__header{
-	height:42px;
-}
-div.manageTree .el-tabs__content{
-	height: calc(100% - 80px);
-}
-div.manageTree .el-table::before {
-	height:0px;
-}
-div.manageTree .el-table::after{
-	width:0px;
-}
-div.manageTree .el-table tbody{
-	border:none;
-}
-div.manageTree .el-table th {
-	background-color:#37505f;
-	color:#b9cdd7;
-}
-div.manageTree .el-table th>.cell{
-	background-color: #37505f;
-	color:#b9cdd7;
-}
-div.manageTree .el-table tr{
-	background-color:#223642;
-	color:#b9cdd7;
-	border:none;
-}
-div.manageTree .el-table td, .el-table th.is-leaf {
-	 border-bottom:0px !important;
-}
-div.manageTree .el-table tr:hover>td{
-	background-color:#37505f;
-}
-div.manageTree .el-table__body tr.current-row>td{
-	background-color:#587081;
-}*/
+
 /*项目*/
 .main ul.top_list {
 	float: left;
@@ -603,45 +625,6 @@ div.manageTree .el-table__body tr.current-row>td{
 .main ul.top_list>li>div>a.router-link-exact-active{
 	color:#1c303a;
 }
-/*@media screen and (max-width: 1540px) {
-	.main ul.show_list{
-		padding:0px;
-	}
-    .main ul.show_list>li{
-       width:96%;
-       margin-left:1%;
-    }
-	.main ul.top_list {
-		margin-left:1%;
-		float:left;
-	}
-}
-@media screen and (min-width: 1540px) {
-    .main ul.show_list>li{
-       width:48%;
-       margin-left:1%;
-    }
-	.main ul.top_list {
-		margin-left:1%;
-		float:left;
-	}
-
-}
-@media screen and (min-width: 1870px) {
-    .main ul.show_list>li{
-       width:49%;
-    }
-    .main ul.top_list>li{
-    	    width: 8.3em;
-    		font-size: 16px;
-    }
-	.main ul.top_list {
-	float:left;
-	margin-top:1em;
-	margin-left: 10px;
-	padding:0px;
-	}
-}*/
  .main ul.top_list>li{
     	    width: 8.3em;
     		font-size: 16px;
@@ -653,7 +636,15 @@ div.manageTree .el-table__body tr.current-row>td{
 	padding:0px;
 	}
 .main ul.Panel_list>li{
-	margin:10px 10px 0px;
+	margin:1em 1em 0;
+}
+
+div#nav_list  ul.Panel_list>li>div>a{
+	text-decoration: none;
+	color:#fff;
+}
+div#nav_list  ul.Panel_list>li>div>a.router-link-exact-active{
+	color:#1c303a;
 }
 /*滚动条*/
 #left_panel2::-webkit-scrollbar-track
@@ -674,22 +665,23 @@ div.manageTree .el-table__body tr.current-row>td{
 		background-color: rgb(41,73,95);
 }
 
-
-li.Weekly_wearning::-webkit-scrollbar-track
+.show_list>li::-webkit-scrollbar-track
 {
 	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
 	background-color: #1C303A;
 	
 }
 
-li.Weekly_wearning::-webkit-scrollbar,
+.show_list>li::-webkit-scrollbar
 {
 	width: 10px;
+	height:10px;
 	background-color: #F5F5F5;
 }
-li.Weekly_wearning::-webkit-scrollbar-thumb
+
+.show_list>li::-webkit-scrollbar-thumb
 {
-	background-color: rgb(41,73,95);
+		background-color: rgb(41,73,95);
 }
 
 
@@ -733,4 +725,262 @@ background-color: rgb(41,73,95); }
 .main div.table::-webkit-scrollbar-thumb 
 { background-color: #1C303A; }
 
+/**********表格样式*****************/
+.main table.msg_table{
+	width:100%;
+	color: #b9cdd7;
+}
+.main table.msg_table thead tr{
+	height: 44px;
+	background-color: #29495f;
+	text-align: center;
+	font-size: 1.25em;
+}
+.main table.msg_table tbody tr.serverMag>td:first-child{
+	width:40px;
+}
+.main table.msg_table tbody tr.serverMag>td:nth-child(2){
+	display: none;
+}
+.main table.msg_table tbody tr.serverMag>td:nth-child(3){
+	display: none;
+}
+.main table.msg_table tbody tr.serverMag>td:nth-child(4){
+	display: none;
+}
+.main table.msg_table tr{
+	font-size: 1em;
+	height:44px;
+	text-align: center;
+	background-color: #223642;
+	cursor:pointer;
+}
+.main table.msg_table tr.odd{
+	background-color: #2a404e;
+}
+.main table.msg_table tbody tr:hover{
+	background-color: #37505f;
+}
+.main table.msg_table tr.active{
+	background-color: #37505f;
+}
+.main table.msg_table tr div.check_box{
+	height:1em;
+	width:1em;
+	background-color: #798e9a;
+	margin:0px auto;
+	cursor: pointer;
+}
+.main table.msg_table tbody td>div{
+	margin:0px auto;
+	overflow: hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+}
+.main table.msg_table tr div.check_box.active{
+	background-image: url(./assets/table/right.png);
+	background-repeat: no-repeat;
+	background-position: center;
+}
+.main table.msg_table tr div.check_box.active.noactive{
+	background: none;
+}
+
+.main table.msg_table tbody tr>td:nth-child(2){
+	display: none;
+}
+.main table.msg_table tbody tr>td:nth-child(3){
+	display: none;
+}
+/*//公告管理*/
+.main table.msg_table tbody tr.noticeMag>td:nth-child(4){
+	display: none;
+}
+.main table.msg_table tbody tr.noticeMag>td:nth-child(6){
+	max-width:600px;
+}
+/*//角色管理*/
+.main table.msg_table tbody tr.ManageRole>td:nth-child(6){
+	display: none;
+}
+.main table.msg_table tbody tr.ManageRole>td:nth-child(8){
+	display: none;
+}
+.main table.msg_table tbody tr.ManageRole>td button{
+	color: #fff;
+    width: 4.5em;
+    height: 2em;
+    border-radius: 5px;
+    background-color: rgba(205,210,234,0.2);
+    margin-left: 10px;
+    line-height: 2em;
+    cursor: pointer;
+    border: 1px solid #8a92a8;
+}
+
+/*日志管理*/
+.main table tr.Log_msg td:nth-child(4){
+	display: none;
+}
+.main table tr.Log_msg td:nth-child(8){
+	display: none;
+}
+.main table tr.Log_msg td:nth-child(10){
+	display: none;
+}
+/*****字典管理*******/
+
+.main table tr.doc_Msg td:nth-child(4){
+	display: none;
+}
+.main table tr.doc_Msg td:nth-child(6){
+	max-width:600px;
+}
+.main table tr.doc_Msg td:nth-child(7){
+	display: none;
+}
+.main table tr.doc_Msg td:nth-child(10){
+	max-width:400px;
+	overflow:hidden;
+text-overflow:ellipsis;
+-o-text-overflow:ellipsis;
+white-space:nowrap;
+}
+
+/***************地图服务表格设置********************/
+
+.main table.msg_table tbody tr.MapTable>td:nth-child(4)>div{
+	width: 120px;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(6)>div{
+	max-width: 560px;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(4){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(5){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(6){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(7){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(8){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(14){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(10){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(11){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(15){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(17){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(18){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:nth-child(19){
+	display:none;
+}
+.main table.msg_table tbody tr.MapTable>td:last-child{
+	display: none;
+}
+/********设置*****************************/
+
+/*.main table.msg_table tbody tr.Setting>td:nth-child(6){
+	display: none;
+}*/
+
+/****************在线升级*******************/
+.main table.msg_table tbody tr.OnlineUpdate>td:nth-child(4){
+	display: none;
+}
+.main table.msg_table tbody tr.OnlineUpdate>td:nth-child(6) div{
+	width:400px;
+}
+.main table.msg_table tbody tr.OnlineUpdate>td:nth-child(7) div{
+	width:300px;
+}
+.main table.msg_table tbody tr.OnlineUpdate>td:last-child{
+	display: none;
+}
+
+
+
+
+
+/**********分页工具条**************************/
+
+.main div.page_list{
+	margin:10px;
+	padding:10px;
+	color:#b9cdd7;
+	background-color: #1c303a;
+	height: calc(100% - 184px);
+}
+.main div.listPanel{
+	margin-top:20px;
+}
+.main div.listPanel .page_list{
+	height: calc(100% - 100px);
+}
+.main div.listPanel .table{
+	height: calc(100% - 60px);
+}
+.main div.page_list ul.page{
+	margin:0px auto;
+	margin-top: 20px;
+	height:20px;
+	width:430px;
+	padding:0px;
+}
+.main div.page_list li{
+	list-style: none;
+	float:left;
+	margin-left:4px;
+}
+.main div.page_list li>div{
+	width:1.5em;
+	height:1.5em;
+	border-radius: 3px;
+	background-color: #2b424f;
+	text-align: center;
+	font-size: 1em;
+	cursor: pointer;
+}
+.main div.page_list li>input.local_page{
+	outline: none;
+	border:0px;
+	border-radius: 3px;
+	background-color: #527083;
+	text-align: center;
+	width:1.5em;
+	height:1.5em;
+}
+.main div.page_list .page li>div{
+	background-size:8px  8px;
+	background-repeat:no-repeat ;
+	background-position:6px  8px;
+}
+.main div.page_list .page li .prev{
+	background-image: url(./assets/table/prev.png);
+}
+.main div.page_list .page li .top{
+	background-image: url(./assets/table/tool_top.png);
+}
+.main div.page_list .page li .bottom{
+	background-image: url(./assets/table/bottom.png);
+}
+.main div.page_list .page li .next{
+	background-image: url(./assets/table/next.png);
+}
 </style>

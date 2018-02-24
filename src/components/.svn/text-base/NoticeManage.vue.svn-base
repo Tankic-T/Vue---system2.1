@@ -53,7 +53,7 @@
     <Modal
         v-model="modalTotal">
          <div slot="header" style="color:#57a3f3;text-align:left;font-size:20px;">
-		            <span>编辑数据</span>
+		            <span>{{cancelType}}公告</span>
 		  </div>
          <Form ref="formInline" :model="noticeMsg" :rules="ruleInline" :label-width="70">
          	<FormItem prop="BIAOTI" label="标题">
@@ -74,7 +74,7 @@
 				  class="reset-el-26 maxw-120"  
 				  v-model="noticeMsg.FABU_SJ"  
 				  type="datetime"  
-				  placeholder="选择结束日期"  
+				  placeholder="选择发布日期"  
 				  ref="picker3"  
 				  :editable="canEdit"  >
 				</el-date-picker>
@@ -160,7 +160,7 @@
 		    					keyword:null,
 		    					submitType:null,
 		    					canEdit:true,
-		    					
+		    					cancelType:"",
 		    					staDate:null,
 		    					endDate:null,
 		    					
@@ -238,11 +238,21 @@
 		    			}
 		    		},
 		    		 handleSubmit(name) {
+		    		 	let formate=function(data){
+			                           
+			                           const d=new Date(data);
+			                           let h= d.getHours()<10? "0"+d.getHours() : d.getHours();
+			                           let m= d.getMinutes()<10? "0"+d.getMinutes() : d.getMinutes();
+			                           let s= d.getSeconds()<10? "0"+d.getSeconds() : d.getSeconds();
+			                           return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + h + ':' + m + ':' + s; 
+			                     };
 		                this.$refs[name].validate((valid) => {
 		                    if (valid) {
+		                    	this.noticeMsg.FABU_SJ=formate(this.noticeMsg.FABU_SJ);
 		                    	let jsons=this.noticeMsg;
 		                    	jsons.SYS_ID=this.$store.state.placeId;
 		                    	jsons=JSON.stringify(jsons);
+		                    	
 		                    	if(this.submitType =="add"){
 		                    		this.$http.get(config.content+'/asmx/GongGaoService.asmx/AddGongGao',{params:{
 		                    			json:jsons
@@ -294,10 +304,15 @@
 		    		},
 		    		addNotice(){
 		    			this.submitType ="add";
+		    			this.cancelType = "添加";
+		    			this.noticeMsg = {
+		    				FABU_SJ:null,
+		    			};
 		    			this.modalTotal=true;
 		    		},
 		    		updateNotice(){
 		    			this.submitType ="update";
+		    			this.cancelType = "修改";
 		    			this.noticeMsg=this.updateMsg;
 		    			this.modalTotal=true;
 		    		},
@@ -371,7 +386,7 @@
 }
 </script>
 
-<style scoped="scoped">
+<style  scoped="scoped">
 /**********当前位置**********/
 .main .table{
 	margin-bottom:0px;

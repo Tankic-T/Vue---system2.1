@@ -9,7 +9,7 @@
 		    <div class="add" @click="addMap"><span></span>增加</div>
 		    <div class="input">
 			    <span>服务类型</span>
-				<Select class="input" v-model="keyword" @change="searchMsg" style="width:200px;background:none">
+				<Select class="input" v-model="keyword" @on-change="searchMsg" style="width:200px;background:none">
 					  <Option value="">所有</Option>
 					  <Option value="Geometry">几何服务</Option>
                       <Option value="imageLayer">影像服务</Option>
@@ -262,6 +262,7 @@
 						        });
 		    		},
 		    		searchMsg(){
+		    			this.pageIndex = 1;
 		    			this.reloadTable();
 		    		},
 		    		openDel(){

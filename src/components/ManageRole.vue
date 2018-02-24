@@ -9,7 +9,7 @@
 			    <div class="add" @click="addMap"><span></span>增加</div>
 			    <div class="input">
 				    <span>角色名称：</span>
-					 <Input type="text" v-model="keyword" placeholder="请输入" style="width:180px">
+					 <Input type="text" @on-change="searchMsg" v-model="keyword" placeholder="请输入" style="width:180px">
 		            </Input>
 				</div>
 		</div>
@@ -128,7 +128,7 @@
 		        v-model="modalTotal" @on-cancel="closeModal">
 		         <div slot="header" style="color:#57a3f3;text-align:left;font-size:20px;
 		         	font-weight:600">
-		            <span>编辑数据</span>
+		            <span>{{modalTitle}}用户</span>
 		        </div>
 		         <Form ref="formInline" :model="roleMsg" :rules="ruleInline" :label-width="80">
 		         	<FormItem prop="ROLE_MC" label="角色名称">
@@ -182,6 +182,7 @@
 				                    MIAOSHU:null,
 				                    ROLE_MC:null,
 				              },
+				                modalTitle:"",
 				                rolemodal:false,
 				                mapService:false,
 				                canEdit:true,
@@ -270,7 +271,6 @@
 		    			//已有权限
 		    		    //data=2016924;
 		    			
-						console.log(data);
 		    			if(this.roleID!=data){
 		    				this.treeCheck.id=null;
 		    				this.treeCheck.sta=null;
@@ -314,6 +314,7 @@
 		    			}
 		    		},
 		    		searchMsg(){
+		    			this.pageIndex = 1;
 		    			this.reloadTable();
 		    		},
 		    		openDel(){
@@ -406,6 +407,7 @@
 		    		},
 		    		addMap(){
 		    			this.submitType ="add";
+		    			this.modalTitle = "添加";
 		    			this.roleMsg={
 				              //      CHUANGJIAN_DATE:'',
 				                    MIAOSHU:null,
@@ -418,6 +420,7 @@
 		    				this.$Message.warning('您未选择数据');
 		    				//swal("警告", "您未选择任何数据", "warning");
 		    			}else{
+		    				this.modalTitle = "修改";
 		    				this.submitType ="update";
 			    			this.roleMsg=this.updateMsg;
 			    			this.modalTotal=true;
@@ -492,6 +495,7 @@
 								}
 		    					jsons=JSON.stringify(jsons);
 		    					
+		    					
 		    					this.$http.get(config.content+'/asmx/MenuService.asmx/AddRoleMenuList',{params:{json:jsons}}).then(response => {
 						 								
 										let result = response.body;
@@ -515,33 +519,37 @@
 		    			}
 
 		    			else if(!b){ //delete
-		    				
-		    				
+
 		    				console.log(a);
 		    				console.log(b);
 		    				
-		    					let ob={
+		    				/*	//单个删除
+		    				let ob={
 		    					MENU_ID:a.MENU_ID,
 		    					ROLE_ID:this.roleID,
 		    				}
 		    					
-		    					//单个删除
 		    				if(a.MenuRoleTreeTwo.length==0){
 		    					let father;
 		    					let child=[];
 		    					if(this.checkJson.length>0){
 		    						
+		    						
+		    						
 		    						child.push(this.checkJson[0]);
 		    						child=JSON.stringify(child).replace(/\"/g,"'");
-		    						
 		    						this.checkJson=this.checkJson.slice(1);
 		    						this.checkJson.length<1?father=null:father=JSON.stringify(this.checkJson).replace(/\"/g,"'" );
 		    						
+
 		    					}else{
 		    						father=null;
 		    						child=null;
 		    					}
-		    				
+		    					
+		    					
+		    					console.log(this.checkJson);
+		    					
 		    					this.$http.get(config.content+'/asmx/MenuService.asmx/DeleteRoleMenu',{params:{parentJson:father,chilDrenJson:child,roleID:this.roleID,thisMenuID:a.MENU_ID}}).then(response => {
 										let result = response.body;
 						                 result = $.parseXML(result);
@@ -552,11 +560,23 @@
 							        }, response => {
 							            console.log("error");
 							   	});
-							   	
-		    					
 		    				}else{
 		    					this.checkJson.push(ob);;
-		    				}
+		    				}*/
+		    				
+		    				//取消选择对应节点  -- 所有匹配的
+		    				this.$http.get(config.content+'/asmx/MenuService.asmx/DeleteRoleMenu',{params:{parentJson:null,chilDrenJson:null,roleID:this.roleID,thisMenuID:a.MENU_ID}}).then(response => {
+										let result = response.body;
+						                 result = $.parseXML(result);
+						                 let obj;
+						                 $(result).find("string").each(function(i){                     
+						                 	obj=$.parseJSON($(this).text());                      
+						                })
+							        }, response => {
+							            console.log("error");
+							   	});
+		    				
+		    				
 		    			}
 		    		},
 

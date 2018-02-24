@@ -3,8 +3,12 @@
 		<div class="nav">
 			<div class="nav_list">
 				<ul id="nav_ul">
-					<li>用户：<p :title="USER_MC" class="user">{{this.USER_MC}}</p></li>
-					<li>角色：<p :title="ROLE_MC" class="role">{{this.ROLE_MC}}</p></li>
+					<li :title="USER_MC" >
+						<Icon size="22" type="person"></Icon>
+						用户：<p class="user">{{this.USER_MC}}</p></li>
+					<li :title="ROLE_MC">
+						<Icon size="22" type="key"></Icon>
+						角色：<p class="role">{{this.ROLE_MC}}</p></li>
 					<li title="点击查看个人信息" @click="UpdateMessage"><span class="personal"></span>个人信息</li>
 					<li title="点击修改密码" @click="UpdatePassword"><span class="password"></span>修改密码</li>
 					<li title="退出"><span class="quit"></span> <a :title="URL" :href="URL">退出</a></li>
@@ -27,7 +31,7 @@
 		    <span>密码修改</span>
 		</p>
         <div>
-        	<Form ref="detailUserMsg" :rules="formInline" :model="detailUserMsg" :label-width="120">
+        	<Form ref="detailUserMsg" :rules="formInline2" :model="detailUserMsg" :label-width="120">
 				<FormItem prop="T_PASSWORD" label="请输入登录密码" >
 					<Input type="password" v-model="detailUserMsg.T_PASSWORD" placeholder="请输入">
 					</Input>
@@ -47,7 +51,7 @@
 				
 				 <div slot="footer">
 		        	<Button type="text" @click="closeM">取消</Button>
-		            <Button type="primary" @click="saveUser('formInline')">保存</Button>
+		            <Button type="primary" @click="saveUser('detailUserMsg')">保存</Button>
         		</div>
 				
     	</Modal>
@@ -72,8 +76,8 @@
         
         <div class="msg">
         	<Form ref="detailUserMsg" :rules="formInline" :model="detailUserMsg" :label-width="80">
-				<FormItem prop="LOGNAME" label="用户名" >
-					<Input type="text" v-model="detailUserMsg.LOGNAME" placeholder="请输入">
+				<FormItem prop="LOGNAME" label="登录账号" >
+					<Input title="登录账号不能修改"  disabled="disabled"  type="text" v-model="detailUserMsg.LOGNAME" placeholder="请输入">
 					</Input>
 				</FormItem>
 				<FormItem prop="USER_MC" label="用户名称">
@@ -125,7 +129,7 @@
 				
 				 <div slot="footer">
 		        	<Button type="text" @click="closeM">取消</Button>
-		            <Button type="primary" @click="saveUser('formInline')">保存</Button>
+		            <Button type="primary" @click="saveUser('detailUserMsg')">保存</Button>
         		</div>
 				
     	</Modal>
@@ -181,9 +185,24 @@ export default {
     					USER_MC:"",
     					ROLE_MC:"",
     					URL:"",
+    					account:null,
+    					ticket:null,
 						UpdateM:false,
 						UpdateP:false,
-						detailUserMsg:{},
+						detailUserMsg:{
+							LOGNAME:null,
+						    USER_MC:null,
+						    T_PASSWORD:null,
+						    TOUXIANG:null,
+						    SHEBEI_BH:null,
+						    NEIBU_DH:null,
+						    DATE_YQ:null,
+						    JIGOU_ID:null,
+						    EMAIL:null,
+						    BEIZHU:null,
+						    N_PASSWORD:null,
+						    NG_PASSWORD:null
+						},
 						formInline:{
 
 									EMAIL: [
@@ -195,7 +214,9 @@ export default {
 									 ],
 									 USER_MC: [
 							            { required: true, message: '请输入用户名称', trigger: 'blur'},
-							          ],
+							          ]
+		    					},
+		    			formInline2:{
 							         T_PASSWORD:[
 							         	{required: true,  validator: validatePass, trigger: 'blur' }
 							         ],
@@ -221,6 +242,9 @@ export default {
     mounted(){
     	
 		this.URL=config.quit;
+		this.account = sessionStorage.getItem("account");
+		
+		this.ticket = sessionStorage.getItem("ticket");
 		
     	this.getPerMsg();
   },
@@ -236,7 +260,7 @@ export default {
 			     var r = window.location.search.substr(1).match(reg);
 			     if(r!=null)return  decodeURI(r[2]); return null;
 			};
-			this.$http.get(config.content+'/asmx/LoginService.asmx/CheckLogin',{params:{account:getC("account"),ticket:getC('ticket')}}).then(response => {			
+			this.$http.get(config.content+'/asmx/LoginService.asmx/CheckLogin',{params:{account:this.account,ticket:this.ticket}}).then(response => {			
 										
 										this.roleHas=0;
 										let result = response.body;
@@ -245,7 +269,7 @@ export default {
 						        $(result).find("string").each(function(i){                     
 						                 	obj=$.parseJSON($(this).text());                      
 						        })
-						        console.log(obj.Result);
+						        
 						        if(obj.Result){
 						        	this.roleType=obj.Result.type;
 						        			
@@ -254,7 +278,6 @@ export default {
 											this.$store.state.USER_MC=obj.Result.info[0]. USER_MC;
 											this.$store.state.USER_ID=obj.Result.info[0]. USER_ID;
 											this.$store.state.ROLE_MC=obj.Result.info[0]. ROLE_MC;
-											this.$store.state.LOCAL_MC=obj.Result.info[0]. NAME;
 											
 						        }
 										
@@ -266,56 +289,27 @@ export default {
   		this.$router.replace({ path: '/Setting' });
   	},
   	UpdateMessage(){
+        this.$refs['detailUserMsg'].resetFields();
+  		this.$http.get(config.content+'/asmx/UserManager.asmx/GetUserDetail',{params:{userId:this.$store.state.USER_ID,}}).then(response => {			
+										let result = response.body;
+						                let father=[];
+						                 result = $.parseXML(result);
+						                 let obj;
+						                 $(result).find("string").each(function(i){                     
+						                 	obj=$.parseJSON($(this).text());                      
+						                })
+						            
+						                obj.Result?this.detailUserMsg=obj.Result[0]:
+						                this.detailUserMsg={};
+						        }, response => {
+						            console.log("error");
+						        });
+  		
   		this.UpdateP=false;
   		this.UpdateM=true;
-  		this.detailUserMsg={
-  			LOGNAME:null,
-		    USER_MC:null,
-		    PASSWORD:null,
-		    TOUXIANG:null,
-		    SHEBEI_BH:null,
-		    NEIBU_DH:null,
-		    DATE_YQ:null,
-		    JIGOU_ID:null,
-		    EMAIL:null,
-		    BEIZHU:null,
-  		};
-  		console.log(this.$store.state.USER_ID);
-  		this.$http.get(config.content+'/asmx/UserManager.asmx/GetUserDetail',{params:{userId:this.$store.state.USER_ID,}}).then(response => {			
-										let result = response.body;
-						                let father=[];
-						                 result = $.parseXML(result);
-						                 let obj;
-						                 $(result).find("string").each(function(i){                     
-						                 	obj=$.parseJSON($(this).text());                      
-						                })
-						            
-						                obj.Result?this.detailUserMsg=obj.Result[0]:
-						                this.detailUserMsg={};
-						        }, response => {
-						            console.log("error");
-						        });
-  		
-  		
   	},
   	UpdatePassword(){
-  		this.UpdateP=true;
-  		this.UpdateM=false;
-  		
-  		
- 		this.detailUserMsg={
-  			LOGNAME:null,
-		    USER_MC:null,
-		    T_PASSWORD:null,
-		    TOUXIANG:null,
-		    SHEBEI_BH:null,
-		    NEIBU_DH:null,
-		    DATE_YQ:null,
-		    JIGOU_ID:null,
-		    EMAIL:null,
-		    BEIZHU:null,
-  		};
-  		
+  	//	this.$refs['detailUserMsg'].resetFields();
   		this.$http.get(config.content+'/asmx/UserManager.asmx/GetUserDetail',{params:{userId:this.$store.state.USER_ID,}}).then(response => {			
 										let result = response.body;
 						                let father=[];
@@ -324,12 +318,22 @@ export default {
 						                 $(result).find("string").each(function(i){                     
 						                 	obj=$.parseJSON($(this).text());                      
 						                })
-						            
-						                obj.Result?this.detailUserMsg=obj.Result[0]:
-						                this.detailUserMsg={};
+						            	
+						            	if(obj.Result){
+						            		this.detailUserMsg=obj.Result[0];
+						            		this.detailUserMsg.T_PASSWORD = null;
+						            		this.detailUserMsg.N_PASSWORD = null;
+						            		this.detailUserMsg.NG_PASSWORD = null;
+						            	}else{
+						            		this.detailUserMsg={};
+						            	}
+						            	
 						        }, response => {
 						            console.log("error");
 						        });
+						        
+		this.UpdateP=true;
+  		this.UpdateM=false;				        
   	},
   	saveUser(name){
   		
@@ -350,13 +354,14 @@ export default {
 		                this.$http.get(config.content+'/asmx/UserManager.asmx/UpdateUserData',{params:{
 		                    json:jsons
 			                    	}}).then(response => {
-										this.$Message.success('提交成功');
+			                    			this.USER_MC=this.detailUserMsg.USER_MC;
+										   this.$Message.success('提交成功');
 							               this.modalTotal = false;
 							               this.$Notice.success({
 							                    title: '已成功更新该人员信息',
 							               });
-							            this.userModel=false;
-										this.reloadTree();
+							            this.UpdateM=false;
+							            this.UpdateP=false;
 							        }, response => {
 							             swal("失败", "更新失败", "error");
 							        });
@@ -390,7 +395,7 @@ body{
 #nav p.user{
 	display: block;
     float: right;
-    width: 64px;
+    max-width: 64px;
     overflow:hidden;
 text-overflow:ellipsis;
 white-space:nowrap;
@@ -399,7 +404,7 @@ white-space:nowrap;
 #nav p.role{
 	display: block;
     float: right;
-    width: 64px;
+    max-width: 66px;
     overflow:hidden;
 text-overflow:ellipsis;
 white-space:nowrap;
@@ -596,7 +601,7 @@ div.main{
     	font-size: 16px;
     }
 	.main ul.top_list>li>div>a{
-		width:64px;
+		width:66px;
 	}
 	 .main div.nav_icon>img{
     	width:50px;

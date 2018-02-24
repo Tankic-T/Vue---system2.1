@@ -128,7 +128,7 @@
 		        v-model="modalTotal" @on-cancel="closeModal">
 		         <div slot="header" style="color:#57a3f3;text-align:left;font-size:20px;
 		         	font-weight:600">
-		            <span>编辑数据</span>
+		            <span>{{modalTitle}}用户</span>
 		        </div>
 		         <Form ref="formInline" :model="roleMsg" :rules="ruleInline" :label-width="80">
 		         	<FormItem prop="ROLE_MC" label="角色名称">
@@ -146,8 +146,7 @@
 					      type="datetime"
 					      style="width:350px"
 					      placeholder="选择日期时间">
-					    </el-date-picker>
-
+					   </el-date-picker>
 			        </FormItem>-->
 		   		 </Form>
 		   		  <div slot="footer">
@@ -183,6 +182,7 @@
 				                    MIAOSHU:null,
 				                    ROLE_MC:null,
 				              },
+				                modalTitle:"",
 				                rolemodal:false,
 				                mapService:false,
 				                canEdit:true,
@@ -214,8 +214,7 @@
 		    					multipleSelection: [],
 		    					checkJson:[],  //check-Json数组
 		    					childs:0,     //删除权限用的子节点数
-		    					
-		    					
+
 								}
 		    },
 		    	computed:{
@@ -272,9 +271,9 @@
 		    			//已有权限
 		    		    //data=2016924;
 		    			
-		    			/*console.log("r:"+this.roleID);
-		    			console.log("data:"+data);
-		    			console.log("sys:"+this.$store.state.placeId);*/
+		    			console.log(this.$store.state.placeId);
+		    			console.log(data);
+		    			
 		    			if(this.roleID!=data){
 		    				this.treeCheck.id=null;
 		    				this.treeCheck.sta=null;
@@ -292,9 +291,13 @@
 						                for(let i=0;i<obj.Result.length;i++){
 						                	this.defaultChecked[i]=obj.Result[i].MENU_ID;
 						                }
-						      			console.log(obj);
-						                 this.$refs.tree.setCheckedKeys(this.defaultChecked);
 										
+										console.log(this.defaultChecked);
+										
+						      			this.defaultChecked.length<1?
+						      			this.$refs.tree.setCheckedKeys([]):
+						      			this.$refs.tree.setCheckedKeys(this.defaultChecked);
+						                 
 						        }, response => {
 						            console.log("error");
 						        });
@@ -314,6 +317,7 @@
 		    			}
 		    		},
 		    		searchMsg(){
+		    			this.pageIndex = 1;
 		    			this.reloadTable();
 		    		},
 		    		openDel(){
@@ -334,7 +338,6 @@
 						                 $(result).find("string").each(function(i){                     
 						                 	obj=$.parseJSON($(this).text());                      
 						                })
-						                 console.log(obj);
 		    				
 										this.$Notice.success({
 						                    title: '已成功删除选中数据。',
@@ -345,7 +348,6 @@
 						        });
 		    		},
 		    		reizeDate(data){
-		    			console.log(data);
 		    			const d=new Date(data);
 		    			let h= d.getHours()<10? "0"+d.getHours() : d.getHours();
 		    			let m= d.getMinutes()<10? "0"+d.getMinutes() : d.getMinutes();
@@ -408,6 +410,7 @@
 		    		},
 		    		addMap(){
 		    			this.submitType ="add";
+		    			this.modalTitle = "添加";
 		    			this.roleMsg={
 				              //      CHUANGJIAN_DATE:'',
 				                    MIAOSHU:null,
@@ -420,9 +423,9 @@
 		    				this.$Message.warning('您未选择数据');
 		    				//swal("警告", "您未选择任何数据", "warning");
 		    			}else{
+		    				this.modalTitle = "修改";
 		    				this.submitType ="update";
 			    			this.roleMsg=this.updateMsg;
-			    			console.log(this.roleMsg);
 			    			this.modalTotal=true;
 		    			}
 		    		},
@@ -441,7 +444,6 @@
 						                 $(result).find("string").each(function(i){                     
 						                 	obj=$.parseJSON($(this).text());                      
 						                })
-						                 
 						                 
 						                 this.tr=obj.Result.TableInfo;
 						                 this.$store.state.tableallCode=[];
@@ -467,9 +469,10 @@
 		    			
 		    			this.defaultChecked.indexOf(parseInt(a.MENU_ID))==-1? bool=true:bool=false;
 		    		//	this.defaultChecked.indexOf(parseInt(a.MENU_ID))==-1    删除后不应加此判断
-		    			if(b  && bool){ //选择  并且 不是默认选择的
-
-		    				
+		    		//	debugger;
+		 		
+		 			
+		    			if(b  && this.defaultChecked.indexOf(parseInt(a.MENU_ID))==-1){ //选择  并且 不是默认选择的
 		    				//子节点总数checkCount+子 节点个数
 		    				
 		    				if(a.MenuRoleTreeTwo.length==0 ){ //加节点本身--单个添加
@@ -478,22 +481,23 @@
 								
 								if(this.checkJson.length<1){  // 没有父节点
 									
-									let o={};
-									o.MENU_ID=a.MENU_ID;
-			    					o.ROLE_ID=this.roleID;
-			    					jsons.push(o);
+										let o={};
+										o.MENU_ID=a.MENU_ID;
+				    					o.ROLE_ID=this.roleID;
+				    					jsons.push(o);
+			    					
 									}else{
 										
-									let oj={};
-									oj.MENU_ID=a.MENU_ID;
-									oj.ROLE_ID=this.roleID;
-									this.checkJson.push(oj);
-									
-									this.checkJson[0].children ? delete this.checkJson[0].children:null;
-									
-									jsons = this.checkJson;
+										let oj={};
+										oj.MENU_ID=a.MENU_ID;
+										oj.ROLE_ID=this.roleID;
+										this.checkJson.push(oj);
+										this.checkJson[0].children ? delete this.checkJson[0].children:null;
+										jsons = this.checkJson;
+										
 								}
 		    					jsons=JSON.stringify(jsons);
+		    					
 		    					this.$http.get(config.content+'/asmx/MenuService.asmx/AddRoleMenuList',{params:{json:jsons}}).then(response => {
 						 								
 										let result = response.body;
@@ -518,17 +522,23 @@
 
 		    			else if(!b){ //delete
 		    				
+		    				
+		    				console.log(a);
+		    				console.log(b);
+		    				
 		    					let ob={
 		    					MENU_ID:a.MENU_ID,
 		    					ROLE_ID:this.roleID,
 		    				}
+		    					
+		    					//单个删除
 		    				if(a.MenuRoleTreeTwo.length==0){
 		    					let father;
 		    					let child=[];
 		    					if(this.checkJson.length>0){
 		    						
 		    						child.push(this.checkJson[0]);
-		    						child=JSON.stringify(child).replace(/\"/g,"'" );
+		    						child=JSON.stringify(child).replace(/\"/g,"'");
 		    						
 		    						this.checkJson=this.checkJson.slice(1);
 		    						this.checkJson.length<1?father=null:father=JSON.stringify(this.checkJson).replace(/\"/g,"'" );
